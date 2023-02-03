@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View,Image, TextInput, TouchableOpacity,KeyboardAvoidingView,Keyboard,ScrollView,Button, Alert} from 'react-native';
 import { useState } from 'react';
+import { Modal, Pressable} from 'react-native';
 import Task from './Components/Task';
 
 
@@ -8,26 +9,39 @@ import Task from './Components/Task';
 export default function App() {
   const [task,setTask]=useState();
   const [taskItems,setTaskItems]=useState([]);
-  const handleAddTask=()=>{
+  const [modalVisible, setModalVisible] = useState(false);
+  const [edit,setEdit]=useState({
+    text:'',
+    index:0
+  });
+  const handleAddTask=(task)=>{
 
-      Keyboard.dismiss();
-      setTaskItems([...taskItems,task])
-    
-     setTask(null);
-    
-    
-   {/* if(taskItems ==""){
+    if (task== null) {
       Alert.alert('Error','plese enter text')
-    }
-  */}
-   
+      
+    }else{
+      setTaskItems([...taskItems,task])
+      Keyboard.dismiss();
+     setTask(null);
   }
+}
   const completeTask = (index) => {
     let itemsCopy = [...taskItems];
     itemsCopy.splice(index, 1);
     setTaskItems(itemsCopy)
   }
-
+  const removeTask = (index) => {
+    let itemsCopy = [...taskItems];
+    itemsCopy.splice(index, 1);
+    setTaskItems(itemsCopy)
+  }
+  const editTask = (edit) => {
+   
+    let itemsCopy = [...taskItems];
+    itemsCopy[edit.index]=edit.text;
+    setTaskItems(itemsCopy)
+    
+  }
   
   return (
     
@@ -47,17 +61,33 @@ export default function App() {
   <View style={styles.Items}>
     {
     taskItems.map((Item,index) => {
-
     return  (
-      <TouchableOpacity key={index} onPress={()=>(completeTask(index))}>
-           {/*<Image style={styles.circular} source={require('./app/assets/delete-icon-png-6.jpg')}></Image>*/}
-           <Task  text={Item}></Task>
-
-       </TouchableOpacity>
+      <View key={index}  style={{paddingHorizontal:10}}>
+           <Task  text={Item} index={index} handleAddTask={handleAddTask}
+           completeTask={completeTask} removeTask={removeTask} openModel={()=>{setEdit({text:Item,index:index});setModalVisible(true)}}></Task>
+       </View>
     
     )
     })
 }
+<Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+          <TextInput style={{width:"100%",minWidth:150,minHeight:50,borderWidth:1,borderRadius:20,padding:10,borderColor:"grey"}} value={edit.text} onChangeText={(text)=>{setEdit((prev)=>{return({...prev,text:text})})}} placeholder={'Edit a Task'}  />
+          <Pressable  style={{position:"absolute",right:0,}}  onPress={() => setModalVisible(!modalVisible)}>
+          <Text style={{backgroundColor:"white",padding:10, shadowColor: '#000',shadowOffset: {width: 0,height: 2,},shadowOpacity: 0.25,shadowRadius: 4,elevation: 5,}}>x</Text>
+          </Pressable>
+          <Pressable
+        style={[styles.button, styles.buttonOpen,]}
+        onPress={() => {editTask(edit);setModalVisible(!modalVisible)}}>
+        <Text  style={styles.textStyle}>Done</Text>
+      </Pressable>
+          </View>
+        </View>
+      </Modal>
 </View>
  
   </ScrollView>
@@ -70,7 +100,7 @@ export default function App() {
   style={styles.writeTaskWrapper}
 >
   <TextInput style={styles.input} placeholder={'Write a Task'} value={task}onChangeText={text=> setTask(text)}/>
-  <TouchableOpacity onPress={()=>handleAddTask()}>
+  <TouchableOpacity  onPress={()=>handleAddTask(task)}>
     <View style={styles.addWrapper}>
     <Image source = {require('./app/assets/plus.png')}   style = {{ width: 20, height: 20}} />
       {/*<Text style={styles.addText}>+</Text>*/}
@@ -92,7 +122,7 @@ const styles = StyleSheet.create({
     paddingHorizontal:20,
     flexDirection:'row',
     alignItems:'center',
-    justifyContent:'space-even'
+    justifyContent:'space-evenly'
   },
   SectionTilte:{
     fontSize:24,
@@ -134,6 +164,50 @@ const styles = StyleSheet.create({
     borderColor: '#C0C0C0',
     borderWidth: 1,
   },
-
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+  },
+  modalView: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    position:"relative"
+  },
+  button: {
+    borderRadius: 3,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonOpen: {
+    backgroundColor: '#e04f5f',
+    marginHorizontal:10,
+    
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+    marginTop:20
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 20,
+    textAlign: 'center',
+   
+  },
 });
 
